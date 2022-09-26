@@ -1,94 +1,86 @@
 #include "lists.h"
 
-size_t list_len(listint_t *head);
-
-listint_t *add_node(listint_t **head, int num);
-
 /**
- * is_palindrome - Checks if a singly linked list is a palidrome
- * @head: The start of the list
+ * is_palindrome - chexk if a list is palindrome
+ * Description:
+ * The approach uses the fact that a list
+ * - is palindrom if:
+ *   its first half is thesame as the reverse
+ *   of its last half
+ * - else its not a palindrom
+ * The middle element is found using the
+ * tortoise hare algorithm
+ * In the case where the list has odd length
+ * the middle element is disregarded
  *
- * Return: 1 if is or 0 if not
+ * @list: pointer to list
+ * Return: 1 if true 0 otherwise
  */
-int is_palindrome(listint_t **head)
+
+int is_palindrome(listint_t **list)
 {
-	listint_t *current = *head;
-	listint_t *tmp_head = NULL;
-	listint_t *tmp_current = NULL;
-	size_t i = 0, len = list_len(*head);
+	int result = 1;
+	listint_t *fast, *slow, *h1, *h2, *tmp;
 
-	if (*head == NULL || (*head)->next == NULL)
-		return (1);
-	while (i < (len / 2))
-	{
-		add_node(&tmp_head, current->n);
-		current = current->next;
-		i++;
-	}
-	if ((len % 2) != 0)
-	{
-		current = current->next;
-		i++;
-	}
-	tmp_current = tmp_head;
-	while (i < len)
-	{
-		if (tmp_current->n == current->n)
-		{
-			current = current->next;
-			tmp_current = tmp_current->next;
-		}
-		else
-		{
-			free_listint(tmp_head);
-			return (0);
-		}
-		i++;
-	}
-	free_listint(tmp_head);
-	return (1);
-}
-
-/**
- * list_len - Goes through a listint_t list
- * @head: The first node of the list
- *
- * Return: Always an unsigned int, the total number of nodes
- */
-size_t list_len(listint_t *head)
-{
-	unsigned int total = 0;
-	listint_t *current = head;
-
-	if (head == NULL)
+	if (!list)
 		return (0);
 
-	while (current)
+	/* if list length is less than 2 */
+	if (!(*list) || !((*list)->next))
+		return (1);
+
+	/* find the middle node */
+	slow = fast = *list;
+	while (fast && fast->next)
 	{
-		total++;
-		current = current->next;
+		slow = slow->next;
+		fast = fast->next->next;
+	}
+	if (fast)
+		slow = slow->next;
+
+	/* reverse the last half */
+	h2 = reverse_listint(&slow);
+	tmp = h2;
+
+	/* compare the two halves */
+	h1 = *list;
+	while (h2)
+	{
+		if (h2->n != h1->n)
+		{
+			result = 0;
+			break;
+		}
+		h1 = h1->next;
+		h2 = h2->next;
 	}
 
-	return (total);
+	/* rever the half back to original */
+	reverse_listint(&tmp);
+	return (result);
 }
 
 /**
- * add_node - Adds a new node at the beginning of a list
- * @head: The first node of a list
- * @num: The integer for the new node
+ * reverse_listint - reverses a linked list
+ * @h: head of the list
  *
- * Return: The address of the new node or NULL
+ * Return: pointer to the reversed
  */
-listint_t *add_node(listint_t **head, int num)
+listint_t *reverse_listint(listint_t **h)
 {
-	listint_t *new = malloc(sizeof(listint_t));
+	listint_t *tmp2, *tmp1;
 
-	if (new == NULL)
+	if (!h || !(*h))
 		return (NULL);
-
-	new->n = num;
-	new->next = *head;
-	*head = new;
-
-	return (*head);
+	tmp1 = (*h)->next;
+	(*h)->next = NULL;
+	while (tmp1)
+	{
+		tmp2 = *h;
+		*h = tmp1;
+		tmp1 = (*h)->next;
+		(*h)->next = tmp2;
+	}
+	return (*h);
 }
